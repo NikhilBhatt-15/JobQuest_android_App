@@ -148,3 +148,4 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 /app/google-services.json
+/app/google-services.json
