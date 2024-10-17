@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.job_test.data.model.JobsResponse
+import com.example.job_test.data.model.Profile
 import com.example.job_test.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,3 +63,4 @@ class JobsViewModel(private val repository: UserRepository):ViewModel() {
         }
     }
 }
+

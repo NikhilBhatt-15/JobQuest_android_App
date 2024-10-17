@@ -44,6 +44,7 @@ interface ApiService {
     suspend fun saveJob(
         @Path("jobId") jobId: String
     ):Response<ErrorResponse>
+
     @PUT("jobs/unsave/{jobId}")
     suspend fun unsaveJob(
         @Path("jobId") jobId: String
@@ -52,7 +53,10 @@ interface ApiService {
     @GET("jobs/saved")
     suspend fun savedJobs():Response<JobsResponse>
 
+
+
     companion object{
         const val BASE_URL = "https://jobquest-backend-47ht.onrender.com/api/v1/"
     }
+
 }
