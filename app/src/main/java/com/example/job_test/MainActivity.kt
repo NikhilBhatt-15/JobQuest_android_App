@@ -172,7 +172,7 @@ fun App(context: Context,navController: NavHostController){
 
 
 // my name is khan
-
+// i am not a robot
 
 
 
