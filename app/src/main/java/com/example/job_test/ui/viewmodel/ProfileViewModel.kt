@@ -14,15 +14,19 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
     fun saveProfile(){
 
     }
+    
     fun editProfile(){
 
     }
+
     fun addResume(){
 
     }
+
     fun removeResume(){
 
     }
+
     fun addExperience(){
 
     }
