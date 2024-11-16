@@ -5,5 +5,6 @@ data class Experience(
     val from: String,
     val location: String,
     val title: String,
-    val to: String
+    val to: String,
+    val description: String?
 )

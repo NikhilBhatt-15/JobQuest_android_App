@@ -173,6 +173,8 @@ fun App(context: Context,navController: NavHostController){
 
 // my name is khan
 
+// and i am not terroist
+
 
 
 

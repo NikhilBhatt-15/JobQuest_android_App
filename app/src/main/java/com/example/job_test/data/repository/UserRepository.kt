@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.job_test.data.model.CompaniesResponse
 import com.example.job_test.data.model.ErrorResponse
 import com.example.job_test.data.model.JobsResponse
+import com.example.job_test.data.model.Profile
+import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.UserProfileResponse
 import com.example.job_test.data.network.RetrofitInstance
 import com.example.job_test.utility.PreferenceManager
@@ -115,4 +117,23 @@ class UserRepository(context: Context) {
             }
         }
     }
+
+    suspend fun editProfile(profileEditRequest: ProfileEditRequest):UserProfileResponse{
+
+        val response = RetrofitInstance.getInstance(token).editProfile(profileEditRequest)
+        return withContext(Dispatchers.IO){
+            if(response.isSuccessful){
+                return@withContext response.body()?: throw Exception("No data found")
+            }
+            else{
+                var errorBody = response.errorBody()?.string()
+                var gson = Gson()
+                val errorResponse = errorBody?.let { gson.fromJson(it, ErrorResponse::class.java) }
+
+                throw Exception(errorResponse?.message ?: "Can't Reach Server")
+            }
+        }
+    }
+
+
 }

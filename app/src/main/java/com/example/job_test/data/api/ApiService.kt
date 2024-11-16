@@ -7,6 +7,7 @@ import com.example.job_test.data.model.IsLoginResponse
 import com.example.job_test.data.model.JobsResponse
 import com.example.job_test.data.model.LoginRequest
 import com.example.job_test.data.model.LoginResponse
+import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.RegisterRequest
 import com.example.job_test.data.model.RegisterResponse
 import com.example.job_test.data.model.UserProfileResponse
@@ -44,6 +45,7 @@ interface ApiService {
     suspend fun saveJob(
         @Path("jobId") jobId: String
     ):Response<ErrorResponse>
+
     @PUT("jobs/unsave/{jobId}")
     suspend fun unsaveJob(
         @Path("jobId") jobId: String
@@ -52,7 +54,15 @@ interface ApiService {
     @GET("jobs/saved")
     suspend fun savedJobs():Response<JobsResponse>
 
+    @PUT("user/profile")
+    suspend fun editProfile(
+        @Body request: ProfileEditRequest
+    ):Response<UserProfileResponse>
+
+
+
     companion object{
         const val BASE_URL = "https://jobquest-backend-47ht.onrender.com/api/v1/"
     }
+
 }
