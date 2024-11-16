@@ -7,6 +7,7 @@ import com.example.job_test.data.model.IsLoginResponse
 import com.example.job_test.data.model.JobsResponse
 import com.example.job_test.data.model.LoginRequest
 import com.example.job_test.data.model.LoginResponse
+import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.RegisterRequest
 import com.example.job_test.data.model.RegisterResponse
 import com.example.job_test.data.model.UserProfileResponse
@@ -52,6 +53,11 @@ interface ApiService {
 
     @GET("jobs/saved")
     suspend fun savedJobs():Response<JobsResponse>
+
+    @PUT("user/profile")
+    suspend fun editProfile(
+        @Body request: ProfileEditRequest
+    ):Response<UserProfileResponse>
 
 
 

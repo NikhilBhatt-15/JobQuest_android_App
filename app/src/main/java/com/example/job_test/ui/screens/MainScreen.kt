@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.job_test.data.repository.UserRepository
 import com.example.job_test.ui.viewmodel.HomeViewModel
 import com.example.job_test.ui.viewmodel.JobsViewModel
+import com.example.job_test.ui.viewmodel.ProfileViewModel
 import com.example.job_test.ui.viewmodel.SavedJobsViewModel
 
 
@@ -48,6 +49,7 @@ fun MainScreen( context: Context, bottomNavItems:List<BottomNavItem>,onLogout:()
     val jobsViewModel = remember { mutableStateOf<JobsViewModel?>(null) }
     val homeViewModel = remember { mutableStateOf<HomeViewModel?>(null) }
     val savedJobsViewModel = remember { mutableStateOf<SavedJobsViewModel?>(null) }
+    val ProfileViewModel = remember { mutableStateOf<ProfileViewModel?>(null) }
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -114,7 +116,11 @@ fun MainScreen( context: Context, bottomNavItems:List<BottomNavItem>,onLogout:()
                             HomeScreen(context,homeViewModel.value!!)
                         }
                         "Profile"-> {
-                            ProfileScreen(context, onLogout = {
+
+                            if(ProfileViewModel.value==null){
+                                ProfileViewModel.value = ProfileViewModel(UserRepository(context))
+                            }
+                            ProfileScreen(context, ProfileViewModel.value!!, onLogout = {
                                 onLogout()
                                 navController.popBackStack()
                             })
