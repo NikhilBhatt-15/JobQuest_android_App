@@ -105,7 +105,7 @@ fun HomeScreen(
 @Preview
 @Composable
 fun UserProfile(
-    userName: String = "John Doe",
+    userName: String = "",
     userEmail: String = "",
     userAvatar: String = ""
 ) {

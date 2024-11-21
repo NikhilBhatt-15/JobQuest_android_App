@@ -47,6 +47,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
@@ -63,12 +64,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.job_test.R
 import com.example.job_test.data.model.Education
 import com.example.job_test.data.model.Experience
 import com.example.job_test.ui.viewmodel.ProfileViewModel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -125,11 +128,27 @@ fun ProfileScreen(context: Context, viewModel: ProfileViewModel, onLogout: () ->
        ) {
            currentEditForm?.let { formType ->
                when (formType) {
-                   EditFormType.Profile -> ProfileEditForm(viewModel,sheetState)
-                   EditFormType.Experience -> ExperienceEditForm(viewModel,sheetState)
+                   EditFormType.Profile -> ProfileEditForm(viewModel,sheetState){
+                            coroutineScope.launch { sheetState.hide() }
+                            isSheetOpen.value = false
+                   }
+                   EditFormType.Experience -> ExperienceEditForm(viewModel,sheetState){
+                          coroutineScope.launch { sheetState.hide() }
+                          isSheetOpen.value = false
+                   }
                    EditFormType.Education -> EducationEditForm(viewModel,sheetState)
-                   EditFormType.Resume -> ResumeEditForm(viewModel,sheetState)
-                   EditFormType.Skills -> SkillsEditForm(viewModel,sheetState)
+                   {
+                          coroutineScope.launch { sheetState.hide() }
+                          isSheetOpen.value = false
+                   }
+                   EditFormType.Resume -> ResumeEditForm(viewModel,sheetState){
+                            coroutineScope.launch { sheetState.hide() }
+                            isSheetOpen.value = false
+                   }
+                   EditFormType.Skills -> SkillsEditForm(viewModel,sheetState){
+                            coroutineScope.launch { sheetState.hide() }
+                            isSheetOpen.value = false
+                   }
                }
            }
        }
@@ -233,7 +252,7 @@ fun ResumeSection(resumeUrl: String?,onEdit: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkillsEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
+fun SkillsEditForm(viewModel: ProfileViewModel, sheetState: SheetState,onSubmit:()->Unit) {
     val profile = viewModel.profile.collectAsState().value
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -308,9 +327,7 @@ fun SkillsEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
             Button(
                 onClick = {
                     viewModel.addSkills(selectedSkills) {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                        }
+                       onSubmit()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -322,7 +339,7 @@ fun SkillsEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResumeEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
+fun ResumeEditForm(viewModel: ProfileViewModel, sheetState: SheetState,onSubmit: () -> Unit) {
     val profile = viewModel.profile.collectAsState().value
     val context = LocalContext.current
     var resumeUri by remember { mutableStateOf<Uri?>(null) }
@@ -386,7 +403,7 @@ fun ResumeEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
                             isSubmitting = false
                             coroutineScope.launch {
                                 try {
-                                    sheetState.hide()
+                                    onSubmit()
                                     // Clear state after the sheet is hidden
                                     resumeUri = null
                                     resumeBitmap = null
@@ -423,8 +440,7 @@ fun createFileFromUri2(context: Context, uri: Uri): File? {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
-    val education = viewModel.education.collectAsState().value
+fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState, onSubmit: () -> Unit) {
     val degree = remember { mutableStateOf("") }
     val school = remember { mutableStateOf("") }
     val field = remember { mutableStateOf("") }
@@ -438,35 +454,9 @@ fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
     val fromError = remember { mutableStateOf<String?>(null) }
     val toError = remember { mutableStateOf<String?>(null) }
 
-    val context = LocalContext.current
-
     var showFromDatePicker by remember { mutableStateOf(false) }
     var showToDatePicker by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
-
-    LaunchedEffect(showFromDatePicker) {
-        if (showFromDatePicker) {
-            MonthYearPickerDialog(context) { year, month ->
-                val formattedDate = SimpleDateFormat("MMM yyyy", Locale.getDefault())
-                    .format(SimpleDateFormat("MM yyyy", Locale.getDefault())
-                        .parse("${month + 1} $year")!!)
-                from.value = formattedDate
-                showFromDatePicker = false
-            }.show()
-        }
-    }
-
-    LaunchedEffect(showToDatePicker) {
-        if (showToDatePicker) {
-            MonthYearPickerDialog(context) { year, month ->
-                val formattedDate = SimpleDateFormat("MMM yyyy", Locale.getDefault())
-                    .format(SimpleDateFormat("MM yyyy", Locale.getDefault())
-                        .parse("${month + 1} $year")!!)
-                to.value = formattedDate
-                showToDatePicker = false
-            }.show()
-        }
-    }
 
     fun validateForm(): Boolean {
         var isValid = true
@@ -559,7 +549,6 @@ fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
             onClick = { showFromDatePicker = true },
             error = fromError.value
         )
-        fromError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
         Spacer(modifier = Modifier.height(8.dp))
 
         ClickableDatePicker(
@@ -568,7 +557,6 @@ fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
             onClick = { showToDatePicker = true },
             error = toError.value
         )
-        toError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
@@ -580,8 +568,6 @@ fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-
-        val coroutineScope = rememberCoroutineScope()
 
         Button(
             onClick = {
@@ -598,9 +584,7 @@ fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
                         )
                     ) {
                         isSubmitting = false
-                        coroutineScope.launch {
-                            sheetState.hide()
-                        }
+                        onSubmit()
                     }
                 }
             },
@@ -611,72 +595,44 @@ fun EducationEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
         }
         Spacer(modifier = Modifier.height(8.dp))
     }
+
+    DatePickerDialog(
+        showDialog = showFromDatePicker,
+        onDismissRequest = { showFromDatePicker = false },
+        onDateSelected = { selectedDate -> from.value = selectedDate }
+    )
+
+    DatePickerDialog(
+        showDialog = showToDatePicker,
+        onDismissRequest = { showToDatePicker = false },
+        onDateSelected = { selectedDate -> to.value = selectedDate }
+    )
 }
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExperienceEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
-    val profile = viewModel.profile.collectAsState().value
-    val company = remember { mutableStateOf("") }
+fun ExperienceEditForm(
+    viewModel: ProfileViewModel,
+    sheetState: SheetState,
+    onSubmit: () -> Unit
+) {
     val title = remember { mutableStateOf("") }
+    val company = remember { mutableStateOf("") }
     val location = remember { mutableStateOf("") }
     val from = remember { mutableStateOf("") }
     val to = remember { mutableStateOf("") }
     val description = remember { mutableStateOf("") }
 
-    val companyError = remember { mutableStateOf<String?>(null) }
     val titleError = remember { mutableStateOf<String?>(null) }
-    val locationError = remember { mutableStateOf<String?>(null) }
+    val companyError = remember { mutableStateOf<String?>(null) }
     val fromError = remember { mutableStateOf<String?>(null) }
     val toError = remember { mutableStateOf<String?>(null) }
-    val descriptionError = remember { mutableStateOf<String?>(null) }
 
-    fun validateForm(): Boolean {
-        var isValid = true
-
-        if (company.value.isBlank()) {
-            companyError.value = "Company is required"
-            isValid = false
-        } else {
-            companyError.value = null
-        }
-
-        if (title.value.isBlank()) {
-            titleError.value = "Title is required"
-            isValid = false
-        } else {
-            titleError.value = null
-        }
-
-        if (location.value.isBlank()) {
-            locationError.value = "Location is required"
-            isValid = false
-        } else {
-            locationError.value = null
-        }
-
-        if (from.value.isBlank()) {
-            fromError.value = "From date is required"
-            isValid = false
-        } else {
-            fromError.value = null
-        }
-
-        if (to.value.isBlank()) {
-            toError.value = "To date is required"
-            isValid = false
-        } else {
-            toError.value = null
-        }
-
-        if (description.value.isBlank()) {
-            descriptionError.value = "Description is required"
-            isValid = false
-        } else {
-            descriptionError.value = null
-        }
-
-        return isValid
-    }
+    val context = LocalContext.current
+    var showFromDatePicker by remember { mutableStateOf(false) }
+    var showToDatePicker by remember { mutableStateOf(false) }
+    var isSubmitting by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -684,13 +640,23 @@ fun ExperienceEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        Text("Experience Edit Form")
+        Text("Experience Edit Form", style = MaterialTheme.typography.headlineMedium)
+
+        OutlinedTextField(
+            value = title.value,
+            onValueChange = { title.value = it },
+            singleLine = true,
+            label = { Text("Job Title") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = titleError.value != null
+        )
+        titleError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = company.value,
             onValueChange = { company.value = it },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = androidx.compose.ui.text.input.ImeAction.Next),
             label = { Text("Company") },
             modifier = Modifier.fillMaxWidth(),
             isError = companyError.value != null
@@ -699,49 +665,28 @@ fun ExperienceEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = title.value,
-            onValueChange = { title.value = it },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = androidx.compose.ui.text.input.ImeAction.Next),
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = titleError.value != null
-        )
-        titleError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
             value = location.value,
             onValueChange = { location.value = it },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = androidx.compose.ui.text.input.ImeAction.Next),
             label = { Text("Location") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = locationError.value != null
+            modifier = Modifier.fillMaxWidth()
         )
-        locationError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
+        ClickableDatePicker(
+            label = "From",
             value = from.value,
-            onValueChange = { from.value = it },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = androidx.compose.ui.text.input.ImeAction.Next),
-            label = { Text("From") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = fromError.value != null
+            onClick = { showFromDatePicker = true },
+            error = fromError.value
         )
         fromError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
+        ClickableDatePicker(
+            label = "To",
             value = to.value,
-            onValueChange = { to.value = it },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = androidx.compose.ui.text.input.ImeAction.Next),
-            label = { Text("To") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = toError.value != null
+            onClick = { showToDatePicker = true },
+            error = toError.value
         )
         toError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
         Spacer(modifier = Modifier.height(8.dp))
@@ -749,42 +694,105 @@ fun ExperienceEditForm(viewModel: ProfileViewModel, sheetState: SheetState) {
         OutlinedTextField(
             value = description.value,
             onValueChange = { description.value = it },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = androidx.compose.ui.text.input.ImeAction.Next),
             label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = descriptionError.value != null
+            modifier = Modifier.fillMaxWidth()
         )
-        descriptionError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val coroutineScope = rememberCoroutineScope()
 
         Button(
             onClick = {
-                if (validateForm()) {
+                if (validateExperienceForm(
+                        title.value, company.value, from.value, to.value,
+                        titleError, companyError, fromError, toError
+                    )
+                ) {
+                    isSubmitting = true
                     viewModel.addExperience(
                         Experience(
-                            company = company.value,
                             title = title.value,
+                            company = company.value,
                             location = location.value,
                             from = from.value,
                             to = to.value,
                             description = description.value
                         )
-                    )
+                    ) {
+                        isSubmitting = false
+                        coroutineScope.launch {
+                            onSubmit()
+                        }
+                    }
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isSubmitting
         ) {
-            Text(text = "Add Experience")
+            Text(if (isSubmitting) "Submitting..." else "Add Experience")
         }
-
         Spacer(modifier = Modifier.height(8.dp))
     }
+
+    DatePickerDialog(
+        showDialog = showFromDatePicker,
+        onDismissRequest = { showFromDatePicker = false },
+        onDateSelected = { selectedDate -> from.value = selectedDate }
+    )
+
+    DatePickerDialog(
+        showDialog = showToDatePicker,
+        onDismissRequest = { showToDatePicker = false },
+        onDateSelected = { selectedDate -> to.value = selectedDate }
+    )
+}
+
+fun validateExperienceForm(
+    title: String,
+    company: String,
+    from: String,
+    to: String,
+    titleError: MutableState<String?>,
+    companyError: MutableState<String?>,
+    fromError: MutableState<String?>,
+    toError: MutableState<String?>
+): Boolean {
+    var isValid = true
+
+    if (title.isBlank()) {
+        titleError.value = "Job title is required"
+        isValid = false
+    } else {
+        titleError.value = null
+    }
+
+    if (company.isBlank()) {
+        companyError.value = "Company is required"
+        isValid = false
+    } else {
+        companyError.value = null
+    }
+
+    if (from.isBlank()) {
+        fromError.value = "From date is required"
+        isValid = false
+    } else {
+        fromError.value = null
+    }
+
+    if (to.isBlank()) {
+        toError.value = "To date is required"
+        isValid = false
+    } else {
+        toError.value = null
+    }
+
+    return isValid
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileEditForm(viewModel: ProfileViewModel,sheetState: SheetState) {
+fun ProfileEditForm(viewModel: ProfileViewModel,sheetState: SheetState,onSubmit: () -> Unit) {
     val profile by viewModel.profile.collectAsState()
     val bio = remember { mutableStateOf(profile?.profile?.bio ?: "") }
     val age = remember { mutableStateOf(profile?.profile?.age ?: "") }
@@ -915,6 +923,7 @@ fun ProfileEditForm(viewModel: ProfileViewModel,sheetState: SheetState) {
                     email = email.value,
                     password = password.value
                 )
+                onSubmit()
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -1402,3 +1411,59 @@ fun ClickableDatePicker(
         }
     }
 }
+
+@Composable
+fun DatePickerDialog(
+    showDialog: Boolean,
+    onDismissRequest: () -> Unit,
+    onDateSelected: (String) -> Unit
+) {
+    if (showDialog) {
+        Dialog(onDismissRequest = {}) { // Disable dismiss on outside touch
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 8.dp,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                val context = LocalContext.current
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Select Month and Year",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Button(
+                        onClick = {
+                            MonthYearPickerDialog(context) { year, month ->
+                                val formattedDate = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+                                    .format(SimpleDateFormat("MM yyyy", Locale.getDefault())
+                                        .parse("${month + 1} $year")!!)
+                                onDateSelected(formattedDate)
+                                onDismissRequest() // Close dialog after selecting a date
+                            }.show()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Pick Date")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Cancel")
+                    }
+                }
+            }
+        }
+    }
+}
+

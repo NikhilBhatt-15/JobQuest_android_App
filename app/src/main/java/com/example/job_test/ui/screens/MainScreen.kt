@@ -38,8 +38,8 @@ data class BottomNavItem(
     var unSelectedIcon:ImageVector,
     var hasNews:Boolean = false,
     var badgeCount: Int?=null
-
 )
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

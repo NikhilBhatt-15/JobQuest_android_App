@@ -40,7 +40,7 @@ fun CreateProfileScreen(viewModel: CreateProfileViewModel = viewModel(), context
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-
+        Text("Create Profile", style = MaterialTheme.typography.headlineLarge)
         Button(onClick = { launcher.launch("image/*") }) {
             Text("Select Avatar")
         }

@@ -8,6 +8,7 @@ import com.example.job_test.data.model.AddExperienceRequest
 import com.example.job_test.data.model.Education
 import com.example.job_test.data.model.ErrorResponse
 import com.example.job_test.data.model.Experience
+import com.example.job_test.data.model.Profile
 import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.UserProfileResponse
 import com.example.job_test.data.model.addResumeRequest
@@ -37,15 +38,15 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
 
         }
     }
-
-    private fun getProfile(){
+    fun getProfile(onResult: (UserProfileResponse?) -> Unit={}){
         viewModelScope.launch {
-            try{
+            try {
                 val profile = repository.getProfile()
                 _profile.value = profile
-            }
-            catch (e: Exception){
+                onResult(profile)
+            } catch (e: Exception) {
                 Log.d("ProfileViewModel", "getProfile: ${e.message}")
+                onResult(null)
             }
         }
     }
@@ -88,14 +89,15 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
         }
     }
 
-    fun addExperience(experience:Experience){
-        val listOfExperience = listOf(experience)
+    fun addExperience(experience: Experience, onComplete: () -> Unit={}) {
         viewModelScope.launch {
             try {
-                repository.addExperience(addExperienceRequest = AddExperienceRequest(listOfExperience))
+                repository.addExperience(AddExperienceRequest(listOf(experience)))
                 getProfile()
+                onComplete()
             } catch (e: Exception) {
-                Log.d("ProfileViewModel", "addResume: ${e.message}")
+                Log.e("ProfileViewModel", "Error adding experience: ${e.message}")
+                onComplete()
             }
         }
     }
@@ -104,7 +106,7 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
 
     }
 
-    fun addResume(resumePart: MultipartBody.Part, onComplete: () -> Unit) {
+    fun addResume(resumePart: MultipartBody.Part, onComplete: () -> Unit={}) {
         viewModelScope.launch {
             try {
                 val response = repository.addResume(addResumeRequest(resumePart))
@@ -121,7 +123,7 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
         val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
         return MultipartBody.Part.createFormData("resume", file.name, requestFile)
     }
-    fun addEducation(education: Education, onComplete: () -> Unit) {
+    fun addEducation(education: Education, onComplete: () -> Unit={}) {
         val listOfEducation = listOf(education)
         viewModelScope.launch {
             try {
@@ -136,7 +138,7 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
         }
     }
 
-    fun addSkills(skills: List<String>, onComplete: () -> Unit) {
+    fun addSkills(skills: List<String>, onComplete: () -> Unit={}) {
         viewModelScope.launch {
             try {
                 val response = repository.addSkills(skills)
