@@ -1,20 +1,34 @@
 package com.example.job_test.ui.viewmodel
 
 import android.util.Log
-import androidx.core.app.GrammaticalInflectionManagerCompat.GrammaticalGender
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.job_test.data.model.Profile
+import com.example.job_test.data.model.AddEducationRequest
+import com.example.job_test.data.model.AddExperienceRequest
+import com.example.job_test.data.model.Education
+import com.example.job_test.data.model.ErrorResponse
+import com.example.job_test.data.model.Experience
 import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.UserProfileResponse
+import com.example.job_test.data.model.addResumeRequest
 import com.example.job_test.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
 class ProfileViewModel(private val repository: UserRepository):ViewModel() {
     private val _profile= MutableStateFlow<UserProfileResponse?>(null)   // change with ProfileResponse model
     val profile = _profile.asStateFlow()
+    private val educationResponse = MutableStateFlow<ErrorResponse?>(null)
+    val education = educationResponse.asStateFlow()
+    private val experienceResponse = MutableStateFlow<ErrorResponse?>(null)
+    val experience = experienceResponse.asStateFlow()
+    private val resumeResponse = MutableStateFlow<ErrorResponse?>(null)
+    val resume = resumeResponse.asStateFlow()
 
 
     init {
@@ -74,19 +88,65 @@ class ProfileViewModel(private val repository: UserRepository):ViewModel() {
         }
     }
 
-    fun addResume(){
-
+    fun addExperience(experience:Experience){
+        val listOfExperience = listOf(experience)
+        viewModelScope.launch {
+            try {
+                repository.addExperience(addExperienceRequest = AddExperienceRequest(listOfExperience))
+                getProfile()
+            } catch (e: Exception) {
+                Log.d("ProfileViewModel", "addResume: ${e.message}")
+            }
+        }
     }
 
     fun removeResume(){
 
     }
 
-    fun addExperience(){
-
+    fun addResume(resumePart: MultipartBody.Part, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = repository.addResume(addResumeRequest(resumePart))
+                resumeResponse.value = response
+                getProfile()
+                onComplete()
+            } catch (e: Exception) {
+                Log.d("ProfileViewModel", "addResume: ${e.message}")
+                onComplete()
+            }
+        }
+    }
+    fun createResumePart(file: File): MultipartBody.Part {
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData("resume", file.name, requestFile)
+    }
+    fun addEducation(education: Education, onComplete: () -> Unit) {
+        val listOfEducation = listOf(education)
+        viewModelScope.launch {
+            try {
+                val response = repository.addEducation(AddEducationRequest(listOfEducation))
+                educationResponse.value = response
+                getProfile()
+                onComplete()
+            } catch (e: Exception) {
+                Log.d("ProfileViewModel", "addEducation: ${e.message}")
+                onComplete()
+            }
+        }
     }
 
-    fun addEducation(){
-
+    fun addSkills(skills: List<String>, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = repository.addSkills(skills)
+                getProfile()
+                onComplete()
+            } catch (e: Exception) {
+                Log.d("ProfileViewModel", "addSkills: ${e.message}")
+                onComplete()
+            }
+        }
     }
+
 }

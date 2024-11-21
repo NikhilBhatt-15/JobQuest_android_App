@@ -1,5 +1,6 @@
 package com.example.job_test
 
+
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Bundle
@@ -29,7 +30,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.job_test.data.repository.AuthRepository
+import com.example.job_test.data.repository.UserRepository
 import com.example.job_test.ui.screens.BottomNavItem
+import com.example.job_test.ui.screens.CreateProfileScreen
 
 import com.example.job_test.ui.screens.LoginScreen
 import com.example.job_test.ui.screens.MainScreen
@@ -37,7 +40,10 @@ import com.example.job_test.ui.screens.ProfileScreen
 import com.example.job_test.ui.screens.RegisterScreen
 import com.example.job_test.ui.screens.SplashScreen
 import com.example.job_test.ui.theme.Job_testTheme
+import com.example.job_test.ui.viewmodel.CreateProfileViewModel
+import com.example.job_test.ui.viewmodel.HomeViewModel
 import com.example.job_test.ui.viewmodel.LoginViewModel
+import com.example.job_test.ui.viewmodel.ProfileViewModel
 import com.example.job_test.ui.viewmodel.RegisterViewModel
 import com.example.job_test.ui.viewmodel.SplashViewModel
 import com.example.job_test.utility.PreferenceManager
@@ -109,7 +115,7 @@ fun App(context: Context,navController: NavHostController){
             unSelectedIcon = Icons.Outlined.AccountCircle
         )
     )
-
+    val HomeViewModel = HomeViewModel(UserRepository(context))
     val token = PreferenceManager.getToken(context)
     NavHost(navController = navController, startDestination = "splash"){
         composable("splash"){
@@ -148,18 +154,35 @@ fun App(context: Context,navController: NavHostController){
             context = context,
             onLogin = {
 
-                navController.navigate("main"){
-                    popUpTo("login"){
-                        inclusive = true
+//                i have to make sure getProfile is called and completed before navigating to main screen
+
+                    navController.navigate("createProfile"){
+                        popUpTo("login"){
+                            inclusive = true
+                        }
                     }
-                }
+
+
             },
             onGoToRegister = {
                 navController.navigate("register")
             }
         )}
+        composable("createProfile"){
+            CreateProfileScreen(viewModel = CreateProfileViewModel(UserRepository(context)),
+                context = context,
+                onProfileCreated = {
+                    navController.navigate("main"){
+                        popUpTo("createProfile"){
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
         composable("main"){
             MainScreen(context, bottomNavItems = bottomNavItems, onLogout = {
+                PreferenceManager.clearToken(context)
                 navController.navigate("login"){
                     popUpTo("main"){
                         inclusive = true

@@ -64,41 +64,45 @@ import com.example.job_test.ui.viewmodel.JobsViewModel
 
 
 @Composable
-fun JobsScreen(viewModel: JobsViewModel = viewModel(),context: Context) {
+fun JobsScreen(viewModel: JobsViewModel = viewModel(), context: Context) {
     val jobsResponse by viewModel.jobsResponse.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(key1 = true) {
         viewModel.getJobs()
     }
+
+    val filteredJobs = jobsResponse?.jobs?.filter { job ->
+        job.title.contains(searchQuery, ignoreCase = true) ||
+                job.jobType.contains(searchQuery, ignoreCase = true)
+    } ?: emptyList()
 
     if (jobsResponse == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
-        // Display jobs or a message if there are none
         Column {
-            JobSearchComponent()
+            JobSearchComponent(
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it }
+            )
             LazyColumn {
-                if (jobsResponse?.jobs.isNullOrEmpty()) {
+                if (filteredJobs.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("No jobs available", modifier = Modifier.padding(16.dp))
                         }
                     }
                 } else {
-                    jobsResponse?.jobs?.let { jobs ->
-                        items(jobs) { job ->
-                            JobCard(job = job, saveJob = viewModel::saveJob, unsaveJob = viewModel::unsaveJob,context)
-                        }
+                    items(filteredJobs) { job ->
+                        JobCard(job = job, saveJob = viewModel::saveJob, unsaveJob = viewModel::unsaveJob, context)
                     }
                 }
             }
         }
-
     }
 }
-
 @Composable
 fun JobCard(job: Job, saveJob: ((String) -> Unit)?, unsaveJob: (String) -> Unit,context:Context) {
 
@@ -236,19 +240,15 @@ fun JobTag(text: String) {
 }
 
 @Composable
-fun JobSearchComponent() {
-    var searchText by remember { mutableStateOf("") }
+fun JobSearchComponent(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
+) {
+    var searchText by remember { mutableStateOf(searchQuery) }
     val colors = MaterialTheme.colorScheme
-    Box(
-        modifier = Modifier
 
-            .background(colors.background)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
+    Box(modifier = Modifier.background(colors.background)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
                 text = "Find Your",
                 fontSize = 28.sp,
@@ -262,58 +262,30 @@ fun JobSearchComponent() {
                 color = Color(0xFF1A237E)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp)),
-                    placeholder = { Text("Search for job") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search Icon"
-                        )
-                    },
-                    colors = TextFieldDefaults.colors(
-                       focusedContainerColor = Color.LightGray.copy(alpha = 0.1f),
-                        unfocusedContainerColor = Color.LightGray.copy(alpha = 0.1f),
-                        cursorColor = Color(0xFF1A237E),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+            TextField(
+                value = searchText,
+                onValueChange = {
+                    searchText = it
+                    onSearchQueryChange(it)
+                },
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)),
+                placeholder = { Text("Search for job title or type") },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.LightGray.copy(alpha = 0.1f),
+                    unfocusedContainerColor = Color.LightGray.copy(alpha = 0.1f),
+                    cursorColor = Color(0xFF1A237E),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(colors.secondary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-
-                        painter = painterResource(id = R.drawable.setting),
-                        contentDescription = "Filter",
-                        tint = Color.White
-                    )
-                }
-            }
+            )
         }
         Image(
             painter = painterResource(id = R.drawable.paperplane),
             contentDescription = "Paper Plane",
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(80.dp)
-                .background(colors.background)
-                .offset(x = (-20).dp, y = 20.dp)
+            modifier = Modifier.align(Alignment.TopEnd).size(80.dp).background(colors.background).offset(x = (-20).dp, y = 20.dp)
         )
     }
 }
-
-

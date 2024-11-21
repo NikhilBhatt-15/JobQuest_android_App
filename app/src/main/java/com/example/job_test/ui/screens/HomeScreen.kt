@@ -57,10 +57,16 @@ fun HomeScreen(
     val profile by viewModel.profile.collectAsState()
     val companiesResponse by viewModel.companies.collectAsState()
     val jobsResponse by viewModel.jobsResponse.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(key1 = true) {
         viewModel.getJobs()
     }
+
+    val filteredJobs = jobsResponse?.jobs?.filter { job ->
+        job.title.contains(searchQuery, ignoreCase = true) ||
+                job.jobType.contains(searchQuery, ignoreCase = true)
+    } ?: emptyList()
 
     Column(
         modifier = Modifier
@@ -71,9 +77,11 @@ fun HomeScreen(
         JobSearchCard(
             userName = profile?.profile?.firstname ?: "John Doe",
             userEmail = profile?.profile?.email ?: "",
-            userAvatar = profile?.profile?.imageUrl ?: ""
+            userAvatar = profile?.profile?.imageUrl ?: "",
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it }
         )
-        if (companiesResponse!=null) {
+        if (companiesResponse != null) {
             Text(
                 text = "Top Companies",
                 fontSize = 20.sp,
@@ -82,18 +90,17 @@ fun HomeScreen(
             )
             companiesResponse?.let { TopCompanies(it.companies) }
         }
-        if(jobsResponse!=null){
+        if (jobsResponse != null) {
             Text(
                 text = "Popular Jobs",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
-            jobsResponse?.let { PopularJobs(it.jobs, onSave = viewModel::saveJob, onUnSave = viewModel::unsaveJob,context) }
+            PopularJobs(filteredJobs, onSave = viewModel::saveJob, onUnSave = viewModel::unsaveJob, context)
         }
     }
 }
-
 
 @Preview
 @Composable
@@ -180,10 +187,10 @@ fun JobSearchField(
 fun JobSearchCard(
     userName: String,
     userEmail: String,
-    userAvatar: String
+    userAvatar: String,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -192,9 +199,7 @@ fun JobSearchCard(
             contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
-        Column(
-//            modifier = Modifier.padding(16.dp)
-        ) {
+        Column {
             UserProfile(
                 userName = userName,
                 userEmail = userEmail,
@@ -203,7 +208,7 @@ fun JobSearchCard(
             Spacer(modifier = Modifier.height(24.dp))
             JobSearchField(
                 searchQuery = searchQuery,
-                onSearchQueryChange = { searchQuery = it }
+                onSearchQueryChange = onSearchQueryChange
             )
         }
     }

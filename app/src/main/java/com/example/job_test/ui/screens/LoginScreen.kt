@@ -65,7 +65,7 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
 
     var isError = viewModel.isError.collectAsState()
-    LaunchedEffect(isError?.value) {
+    LaunchedEffect(isError.value) {
         isError.value?.let {
             if(isError.value==false){
                 isLoading = false

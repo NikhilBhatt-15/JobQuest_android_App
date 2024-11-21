@@ -1,7 +1,11 @@
 package com.example.job_test.data.api
 
 
+import com.example.job_test.data.model.AddEducationRequest
+import com.example.job_test.data.model.AddExperienceRequest
+import com.example.job_test.data.model.AddSkillsRequest
 import com.example.job_test.data.model.CompaniesResponse
+import com.example.job_test.data.model.Education
 import com.example.job_test.data.model.ErrorResponse
 import com.example.job_test.data.model.IsLoginResponse
 import com.example.job_test.data.model.JobsResponse
@@ -11,11 +15,15 @@ import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.RegisterRequest
 import com.example.job_test.data.model.RegisterResponse
 import com.example.job_test.data.model.UserProfileResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface ApiService {
@@ -59,7 +67,37 @@ interface ApiService {
         @Body request: ProfileEditRequest
     ):Response<UserProfileResponse>
 
+    @POST("user/profile/experience")
+    suspend fun addExperience(
+        @Body request: AddExperienceRequest
+    ):Response<ErrorResponse>
 
+    @Multipart
+    @POST("user/profile")
+    suspend fun createProfile(
+        @Part("bio") bio: RequestBody,
+        @Part avatar: MultipartBody.Part,
+        @Part("location") location: RequestBody,
+        @Part("age") age: RequestBody,
+        @Part("gender") gender: RequestBody,
+        @Part("phone_no") phoneNo: RequestBody
+    ): Response<ErrorResponse>
+
+    @POST("user/profile/education")
+    suspend fun addEducation(
+        @Body request: AddEducationRequest
+    ):Response<ErrorResponse>
+
+    @Multipart
+    @PUT("user/profile/resume")
+    suspend fun addResume(
+        @Part resume: MultipartBody.Part,
+    ):Response<ErrorResponse>
+
+    @POST("user/profile/skills")
+    suspend fun addSkills(
+        @Body request: AddSkillsRequest
+    ):Response<ErrorResponse>
 
     companion object{
         const val BASE_URL = "https://jobquest-backend-47ht.onrender.com/api/v1/"

@@ -1,17 +1,24 @@
 package com.example.job_test.data.repository
 
 import android.content.Context
+import com.example.job_test.data.model.AddEducationRequest
+import com.example.job_test.data.model.AddExperienceRequest
+import com.example.job_test.data.model.AddSkillsRequest
 import com.example.job_test.data.model.CompaniesResponse
+import com.example.job_test.data.model.CreateProfileRequest
+import com.example.job_test.data.model.Education
 import com.example.job_test.data.model.ErrorResponse
 import com.example.job_test.data.model.JobsResponse
-import com.example.job_test.data.model.Profile
 import com.example.job_test.data.model.ProfileEditRequest
 import com.example.job_test.data.model.UserProfileResponse
+import com.example.job_test.data.model.addResumeRequest
 import com.example.job_test.data.network.RetrofitInstance
 import com.example.job_test.utility.PreferenceManager
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class UserRepository(context: Context) {
     private val token = PreferenceManager.getToken(context)?:""
@@ -135,5 +142,91 @@ class UserRepository(context: Context) {
         }
     }
 
+    suspend fun addExperience(addExperienceRequest: AddExperienceRequest){
+        val response = RetrofitInstance.getInstance(token).addExperience(addExperienceRequest)
+        return withContext(Dispatchers.IO){
+            if(response.isSuccessful){
+                return@withContext
+            }
+            else{
+                var errorBody = response.errorBody()?.string()
+                var gson = Gson()
+                val errorResponse = errorBody?.let { gson.fromJson(it, ErrorResponse::class.java) }
+
+                throw Exception(errorResponse?.message ?: "Can't Reach Server")
+            }
+        }
+    }
+
+    suspend fun createProfile(createProfileRequest: CreateProfileRequest):ErrorResponse{
+        val response = RetrofitInstance.getInstance(token).createProfile(
+            avatar = createProfileRequest.avatar,
+            location = createProfileRequest.location.toRequestBody("text/plain".toMediaTypeOrNull()),
+            age = createProfileRequest.age.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+            gender = createProfileRequest.gender.toRequestBody("text/plain".toMediaTypeOrNull()),
+            phoneNo = createProfileRequest.phone_no.toRequestBody("text/plain".toMediaTypeOrNull()),
+            bio = createProfileRequest.bio.toRequestBody("text/plain".toMediaTypeOrNull())
+        )
+        return withContext(Dispatchers.IO){
+            if(response.isSuccessful){
+                return@withContext response.body()?: throw Exception("No data found")
+            }
+            else{
+                var errorBody = response.errorBody()?.string()
+                var gson = Gson()
+                val errorResponse = errorBody?.let { gson.fromJson(it, ErrorResponse::class.java) }
+
+                throw Exception(errorResponse?.message ?: "Can't Reach Server")
+            }
+        }
+    }
+
+    suspend fun addEducation(addEducationRequest: AddEducationRequest):ErrorResponse{
+        val response = RetrofitInstance.getInstance(token).addEducation(addEducationRequest)
+        return withContext(Dispatchers.IO){
+            if(response.isSuccessful){
+                return@withContext response.body()?: throw Exception("No data found")
+            }
+            else{
+                var errorBody = response.errorBody()?.string()
+                var gson = Gson()
+                val errorResponse = errorBody?.let { gson.fromJson(it, ErrorResponse::class.java) }
+
+                throw Exception(errorResponse?.message ?: "Can't Reach Server")
+            }
+        }
+    }
+    suspend fun addResume(addResumeRequest: addResumeRequest):ErrorResponse{
+        val response = RetrofitInstance.getInstance(token).addResume(addResumeRequest.resume)
+        return withContext(Dispatchers.IO){
+            if(response.isSuccessful){
+                return@withContext response.body()?: throw Exception("No data found")
+            }
+            else{
+                var errorBody = response.errorBody()?.string()
+                var gson = Gson()
+                val errorResponse = errorBody?.let { gson.fromJson(it, ErrorResponse::class.java) }
+
+                throw Exception(errorResponse?.message ?: "Can't Reach Server")
+            }
+        }
+    }
+
+    suspend fun addSkills(skills: List<String>):ErrorResponse{
+        val response = RetrofitInstance.getInstance(token).addSkills(AddSkillsRequest(skills))
+
+        return withContext(Dispatchers.IO){
+            if(response.isSuccessful){
+                return@withContext response.body()?: throw Exception("No data found")
+            }
+            else{
+                var errorBody = response.errorBody()?.string()
+                var gson = Gson()
+                val errorResponse = errorBody?.let { gson.fromJson(it, ErrorResponse::class.java) }
+
+                throw Exception(errorResponse?.message ?: "Can't Reach Server")
+            }
+        }
+    }
 
 }

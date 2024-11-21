@@ -73,4 +73,15 @@ class HomeViewModel(private val repository: UserRepository):ViewModel() {
             }
         }
     }
+
+    fun getProfile(){
+        viewModelScope.launch {
+            try {
+                val result = repository.getProfile()
+                _profile.value = result
+            } catch (e: Exception) {
+                _profile.value = null
+            }
+        }
+    }
 }
