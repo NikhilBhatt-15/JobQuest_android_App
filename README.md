@@ -62,15 +62,6 @@ This is a sample Android application for job finding, built using Kotlin and Jav
 - Search for jobs, save jobs, and apply to jobs.
 - Receive notifications for job updates.
 
-## UI
-![IMG-20241121-WA0014](https://github.com/user-attachments/assets/8769fe98-7d5d-4356-bc3b-2dc8c4d1b1c2)
-![IMG-20241121-WA0015](https://github.com/user-attachments/assets/5c017822-c450-411b-83a1-0fc434994140)
-![IMG-20241121-WA0016](https://github.com/user-attachments/assets/4d24c510-d1a9-41e5-a875-d011588c1ddf)
-![IMG-20241121-WA0017](https://github.com/user-attachments/assets/79cf2940-b4cf-45da-b1ca-5e171eedaee5)
-![IMG-20241121-WA0019](https://github.com/user-attachments/assets/57bebcb0-634a-4199-8aa9-f31213485511)
-![IMG-20241121-WA0020](https://github.com/user-attachments/assets/9db18a77-3d90-4e55-9a7b-30eab3f61363)
-![IMG-20241121-WA0021](https://github.com/user-attachments/assets/be94e1c1-128e-4c2d-acf8-74606ef8abb3)
-
 ## Contributing
 
 1. Fork the repository.
