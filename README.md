@@ -12,6 +12,10 @@ This is a sample Android application for job finding, built using Kotlin and Jav
 - Error Handling
 - MVVM Architecture
 
+
+
+
+
 ## Technologies Used
 
 - Kotlin
@@ -61,7 +65,7 @@ This is a sample Android application for job finding, built using Kotlin and Jav
 - Click on the "Register" button to create a new account.
 - Search for jobs, save jobs, and apply to jobs.
 - Receive notifications for job updates.
-
+https://github.com/user-attachments/assets/0286932d-d9c1-4e92-9dab-8d7756808636
 ## Contributing
 
 1. Fork the repository.
