@@ -82,6 +82,8 @@ https://github.com/user-attachments/assets/31a47361-85bb-435c-95f9-94d8e02c994a
 - Search for jobs, save jobs, and apply to jobs.
 - Receive notifications for job updates.
 
+## Download Link
+- https://drive.usercontent.google.com/download?id=1RC_v2dDZvz2eDCqXNDmdwlw7f1XVLvfo&export=download&authuser=0
 ## Contributing
 
 1. Fork the repository.
